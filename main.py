@@ -7,6 +7,7 @@ import uvicorn
 
 from app.database.db import init_db
 from app.goods.routers.goods import router as router_goods
+from app.uploads.routers.uploads import router as router_uploads
 
 
 @asynccontextmanager
@@ -41,6 +42,7 @@ async def test():
 
 
 app.include_router(router_goods)
+app.include_router(router_uploads)
 
 
 if __name__ == "__main__":
