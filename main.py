@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 import uvicorn
 
 from app.database.db import init_db
+from app.database import models  # ensure models are imported so SQLModel can create tables
 from app.goods.routers.goods import router as router_goods
 from app.uploads.routers.uploads import router as router_uploads
 

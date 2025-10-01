@@ -1,5 +1,4 @@
 import os
-import pathlib
 from typing import Optional, Dict, Any
 
 from googleapiclient.discovery import build
@@ -24,46 +23,34 @@ class YouTubeShortsUploader:
     def __init__(
         self,
         client_secrets_file: Optional[str] = None,
-        token_storage_path: Optional[str] = None,
+        credentials: Optional[Credentials] = None,
         scopes: Optional[list[str]] = None,
         default_privacy_status: Optional[str] = None,
         default_category_id: Optional[str] = None,
     ) -> None:
         self.client_secrets_file = client_secrets_file or conf.YOUTUBE_CLIENT_SECRETS_FILE
-        self.token_storage_path = token_storage_path or conf.YOUTUBE_TOKEN_STORAGE
         self.scopes = scopes or conf.YOUTUBE_OAUTH_SCOPES
         self.default_privacy_status = default_privacy_status or conf.YOUTUBE_PRIVACY_STATUS
         self.default_category_id = default_category_id or conf.YOUTUBE_CATEGORY_ID
 
-        self._credentials: Optional[Credentials] = None
+        self._credentials: Optional[Credentials] = credentials
 
-    def _load_credentials(self) -> Credentials:
-        token_path = pathlib.Path(self.token_storage_path)
-        creds: Optional[Credentials] = None
-
-        if token_path.exists():
-            creds = Credentials.from_authorized_user_file(str(token_path), self.scopes)
-
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    self.client_secrets_file, self.scopes
-                )
-                # For server environments without browser, use run_local_server with a port
-                creds = flow.run_local_server(port=0)
-
-            # Save the credentials for the next run
-            token_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(token_path, "w") as token_file:
-                token_file.write(creds.to_json())
-
+    def _interactive_login(self) -> Credentials:
+        flow = InstalledAppFlow.from_client_secrets_file(
+            self.client_secrets_file, self.scopes
+        )
+        creds = flow.run_local_server(port=0)
         self._credentials = creds
         return creds
 
     def _get_service(self):
-        creds = self._credentials or self._load_credentials()
+        creds = self._credentials
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                creds = self._interactive_login()
+                self._credentials = creds
         return build("youtube", "v3", credentials=creds)
 
     def upload(

@@ -1,5 +1,39 @@
 # goods-api
 
+## Alembic migrations
+
+Environment variables loaded from `.env` (used by app and alembic):
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+
+Commands:
+
+```bash
+# upgrade to latest
+make migrate
+
+# create new revision
+make revision msg="add something"
+
+# downgrade one step
+make downgrade
+
+# or via script
+./scripts/migrate.sh
+
+# Dockerized (docker-compose)
+make dcu           # up -d
+make dmigrate      # alembic upgrade head inside app container
+make dcurrent      # show current revision in container
+make dhistory      # show history in container
+make ddowngrade    # downgrade -1 in container
+make drevision msg="message"
+```
+
 
 
 ## Getting started

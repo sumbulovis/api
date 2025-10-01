@@ -1,9 +1,9 @@
 services:
   api:
-    image: binarrshina/goods-api:latest
+    image: sumbulovis/api:latest
     ports:
       - "8000:8000"
-    container_name: goods-api-app
+    container_name: api-app
     env_file:
       - .env
     environment:
@@ -15,7 +15,7 @@ services:
 
   db:
     image: postgres:15
-    container_name: goods-api-db
+    container_name: api-db
     env_file:
       - .env
     environment:
