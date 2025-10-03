@@ -1,16 +1,16 @@
-SHELL := /usr/bin/bash
+SHELL := /bin/bash
 
 # Load env from .env if present
-ifneq (,$(wildcard .env))
-    include .env
-    export $(shell sed -n 's/^[A-Za-z_][A-Za-z0-9_]*=.*/\0/p' .env)
-endif
+# ifneq (,$(wildcard .env))
+#     include .env
+#     export $(shell sed -n 's/^[A-Za-z_][A-Za-z0-9_]*=.*/\0/p' .env)
+# endif
 
 POETRY := poetry
 ALEMBIC := $(POETRY) run alembic
 DC := docker-compose
 APP_SVC := api
-APP_CTR := goods-api-app
+APP_CTR := api-app
 
 .PHONY: migrate upgrade downgrade revision current history heads
 
@@ -40,26 +40,30 @@ revision:
 ## Docker compose up (detached)
 dcu:
 	$(DC) up -d
+	
+## Docker compose down (detached)
+dcd:
+	$(DC) down
 
 ## Dockerized: upgrade to head inside app container
 dmigrate:
-	$(DC) exec $(APP_SVC) poetry run alembic upgrade head
+	$(DC) exec -e PYTHONPATH=/app $(APP_SVC) poetry run alembic upgrade head
 
 ## Dockerized: current revision
 dcurrent:
-	$(DC) exec $(APP_SVC) poetry run alembic current
+	$(DC) exec -e PYTHONPATH=/app $(APP_SVC) poetry run alembic current
 
 ## Dockerized: history
 dhistory:
-	$(DC) exec $(APP_SVC) poetry run alembic history --verbose
+	$(DC) exec -e PYTHONPATH=/app $(APP_SVC) poetry run alembic history --verbose
 
 ## Dockerized: downgrade one step
 ddowngrade:
-	$(DC) exec $(APP_SVC) poetry run alembic downgrade -1
+	$(DC) exec -e PYTHONPATH=/app $(APP_SVC) poetry run alembic downgrade -1
 
 ## Dockerized: create revision: make drevision msg="message"
 drevision:
 	@if [ -z "$(msg)" ]; then echo "Usage: make drevision msg=\"message\""; exit 1; fi
-	$(DC) exec $(APP_SVC) poetry run alembic revision -m "$(msg)"
+	$(DC) exec -e PYTHONPATH=/app $(APP_SVC) poetry run alembic revision -m "$(msg)"
 
 
